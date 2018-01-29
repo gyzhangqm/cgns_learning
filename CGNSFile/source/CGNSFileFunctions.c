@@ -272,13 +272,13 @@ void generateElementsConnectivity3D(cgns_unstructured_file *data)
 
 void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 {
-	int i, j, err;
+	int i, j, k, err;
 	int numberOfElements, elementNumber, firstVerticeIndex;
 	char boundaryName[MAX_STRING_LEN];
 	int firstElementNumber, lastElementNumber;
 	const int NX = data->nx;
 	const int NY = data->ny;
-	/*const int NZ = data->nz;*/
+	const int NZ = data->nz;
 	cgsize_t * quadrangleConnectivity;
 
 	/* south */
@@ -300,6 +300,28 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	}
 	lastElementNumber = firstElementNumber + numberOfElements - 1;
 	cg_section_write(data->file, data->base, data->zone, data->southBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->southBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* north */
+	strcpy(data->northBoundarySectionName, "north boundary");
+	numberOfElements = (NX-1)*(NY-1);
+	quadrangleConnectivity = (cgsize_t *) realloc(quadrangleConnectivity, 4*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	k = NZ - 1;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(j=0 ; j<(NY-1) ; ++j)
+		{
+			elementNumber = i + (NX-1)*j;
+			firstVerticeIndex = i + j*NX + k*NX*NY;
+			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
+			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
+			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
+			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + NX;
+		}
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->northBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->northBoundarySection));
 	data->lastElementNumber = lastElementNumber;
 	free(quadrangleConnectivity);
 

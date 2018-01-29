@@ -40,7 +40,9 @@ typedef struct cgns_unstructured_file
 	int gridConnectivitySection;
 
 	char southBoundarySectionName[MAX_STRING_LEN];
+	char northBoundarySectionName[MAX_STRING_LEN];
 	int southBoundarySection;
+	int northBoundarySection;
 } cgns_unstructured_file;
 
 #endif
