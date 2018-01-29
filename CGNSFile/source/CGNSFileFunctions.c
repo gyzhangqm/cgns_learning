@@ -264,7 +264,7 @@ void generateElementsConnectivity3D(cgns_unstructured_file *data)
 		}
 	}
 	lastElementNumber = numberOfElements;
-	cg_section_write(data->file, data->base, data->zone, data->sectionName, CGNS_ENUMV(HEXA_8), firstElementNumber, lastElementNumber, 0, hexaedronConnectivity, &(data->section));
+	cg_section_write(data->file, data->base, data->zone, data->gridConnectivitySectionName, CGNS_ENUMV(HEXA_8), firstElementNumber, lastElementNumber, 0, hexaedronConnectivity, &(data->gridConnectivitySection));
 	data->lastElementNumber = lastElementNumber;
 
 	free(hexaedronConnectivity);
@@ -281,7 +281,8 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	/*const int NZ = data->nz;*/
 	cgsize_t * quadrangleConnectivity;
 
-	strcpy(boundaryName, "south boundary");
+	/* south */
+	strcpy(data->southBoundarySectionName, "south boundary");
 	numberOfElements = (NX-1)*(NY-1);
 	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
 	firstElementNumber = data->lastElementNumber + 1;
@@ -298,7 +299,7 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 		}
 	}
 	lastElementNumber = firstElementNumber + numberOfElements - 1;
-	cg_section_write(data->file, data->base, data->zone, boundaryName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->section));
+	cg_section_write(data->file, data->base, data->zone, data->southBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->southBoundarySection));
 	data->lastElementNumber = lastElementNumber;
 	free(quadrangleConnectivity);
 
@@ -331,7 +332,7 @@ void generateElementsConnectivity2D(cgns_unstructured_file *data)
 		}
 	}
 	lastElementNumber = numberOfElements;
-	cg_section_write(data->file, data->base, data->zone, data->sectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->section));
+	cg_section_write(data->file, data->base, data->zone, data->gridConnectivitySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
 
 	free(quadrangleConnectivity);
 	return ;

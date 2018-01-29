@@ -36,6 +36,12 @@ typedef struct cgns_unstructured_file
 	double *x, *y, *z;
 
 	int lastElementNumber;
+
+	char gridConnectivitySectionName[MAX_STRING_LEN];
+	int gridConnectivitySection;
+
+	char southBoundarySectionName[MAX_STRING_LEN];
+	int southBoundarySection;
 } cgns_unstructured_file;
 
 #endif
