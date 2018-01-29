@@ -24,6 +24,7 @@ int main(int argc, char *argv[])
 	generateZone2D(&data);
 	generateCoordinates2D(&data);
 	generateElementsConnectivity2D(&data);
+	generateBoundaryLines2D(&data);
 
 	cg_close(data.file);
 

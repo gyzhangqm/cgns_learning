@@ -274,7 +274,6 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 {
 	int i, j, k, err;
 	int numberOfElements, elementNumber, firstVerticeIndex;
-	char boundaryName[MAX_STRING_LEN];
 	int firstElementNumber, lastElementNumber;
 	const int NX = data->nx;
 	const int NY = data->ny;
@@ -444,9 +443,92 @@ void generateElementsConnectivity2D(cgns_unstructured_file *data)
 	}
 	lastElementNumber = numberOfElements;
 	cg_section_write(data->file, data->base, data->zone, data->gridConnectivitySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
+	data->lastElementNumber = lastElementNumber;
 
 	free(quadrangleConnectivity);
 	return ;
+}
+
+void generateBoundaryLines2D(cgns_unstructured_file *data)
+{
+	int i, j, err;
+	int numberOfElements, elementNumber, firstVerticeIndex;
+	int firstElementNumber, lastElementNumber;
+	const int NX = data->nx;
+	const int NY = data->ny;
+	const int NZ = data->nz;
+	cgsize_t * lineConnectivity;
+
+	/* bottom */
+	strcpy(data->bottomBoundarySectionName, "bottom boundary");
+	numberOfElements = (NX-1);
+	lineConnectivity = (cgsize_t *) malloc(2*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	j = 0;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		elementNumber = i;
+		firstVerticeIndex = i + j*NX;
+		lineConnectivity[2*elementNumber+0] = 1 + firstVerticeIndex + 1;
+		lineConnectivity[2*elementNumber+1] = 1 + firstVerticeIndex;
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->bottomBoundarySectionName, CGNS_ENUMV(BAR_2), firstElementNumber, lastElementNumber, 0, lineConnectivity, &(data->bottomBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* top */
+	strcpy(data->topBoundarySectionName, "top boundary");
+	numberOfElements = (NX-1);
+	lineConnectivity = (cgsize_t *) realloc(lineConnectivity, 2*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	j = NY - 1;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		elementNumber = i;
+		firstVerticeIndex = i + j*NX;
+		lineConnectivity[2*elementNumber+0] = 1 + firstVerticeIndex;
+		lineConnectivity[2*elementNumber+1] = 1 + firstVerticeIndex + 1;
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->topBoundarySectionName, CGNS_ENUMV(BAR_2), firstElementNumber, lastElementNumber, 0, lineConnectivity, &(data->topBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* west */
+	strcpy(data->westBoundarySectionName, "west boundary");
+	numberOfElements = (NY-1);
+	lineConnectivity = (cgsize_t *) realloc(lineConnectivity, 2*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	i = 0;
+	for(j=0 ; j<(NY-1) ; ++j)
+	{
+		elementNumber = j;
+		firstVerticeIndex = i + j*NX;
+		lineConnectivity[2*elementNumber+0] = 1 + firstVerticeIndex + NX;
+		lineConnectivity[2*elementNumber+1] = 1 + firstVerticeIndex;
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->westBoundarySectionName, CGNS_ENUMV(BAR_2), firstElementNumber, lastElementNumber, 0, lineConnectivity, &(data->westBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* east */
+	strcpy(data->eastBoundarySectionName, "east boundary");
+	numberOfElements = (NY-1);
+	lineConnectivity = (cgsize_t *) realloc(lineConnectivity, 2*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	i = NX - 1;
+	for(j=0 ; j<(NY-1) ; ++j)
+	{
+		elementNumber = j;
+		firstVerticeIndex = i + j*NX;
+		lineConnectivity[2*elementNumber+0] = 1 + firstVerticeIndex + NX;
+		lineConnectivity[2*elementNumber+1] = 1 + firstVerticeIndex;
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->eastBoundarySectionName, CGNS_ENUMV(BAR_2), firstElementNumber, lastElementNumber, 0, lineConnectivity, &(data->eastBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	free(lineConnectivity);
+	return;
 }
 
 void generateSimulationType_TimeAccurate(cgns_unstructured_file *data)
