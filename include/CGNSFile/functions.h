@@ -13,6 +13,7 @@ void generateBase(cgns_unstructured_file *data);
 void generateZone3D(cgns_unstructured_file *data);
 void generateCoordinates3D(cgns_unstructured_file *data);
 void generateElementsConnectivity3D(cgns_unstructured_file *data);
+void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data);
 
 void generateZone2D(cgns_unstructured_file *data);
 void generateCoordinates2D(cgns_unstructured_file *data);

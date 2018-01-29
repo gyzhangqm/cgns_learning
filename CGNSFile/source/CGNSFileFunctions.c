@@ -240,7 +240,6 @@ void generateElementsConnectivity3D(cgns_unstructured_file *data)
 	const int NY = data->ny;
 	const int NZ = data->nz;
 
-
 	/* Elements conectivity */
 		/* 0 <= elementNumber <= (NX-1)*(NY-1)*(NZ-1) */
 	numberOfElements = (NX-1)*(NY-1)*(NZ-1);
@@ -266,8 +265,44 @@ void generateElementsConnectivity3D(cgns_unstructured_file *data)
 	}
 	lastElementNumber = numberOfElements;
 	cg_section_write(data->file, data->base, data->zone, data->sectionName, CGNS_ENUMV(HEXA_8), firstElementNumber, lastElementNumber, 0, hexaedronConnectivity, &(data->section));
+	data->lastElementNumber = lastElementNumber;
 
 	free(hexaedronConnectivity);
+}
+
+void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
+{
+	int i, j, err;
+	int numberOfElements, elementNumber, firstVerticeIndex;
+	char boundaryName[MAX_STRING_LEN];
+	int firstElementNumber, lastElementNumber;
+	const int NX = data->nx;
+	const int NY = data->ny;
+	/*const int NZ = data->nz;*/
+	cgsize_t * quadrangleConnectivity;
+
+	strcpy(boundaryName, "south boundary");
+	numberOfElements = (NX-1)*(NY-1);
+	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(j=0 ; j<(NY-1) ; ++j)
+		{
+			elementNumber = i + (NX-1)*j;
+			firstVerticeIndex = i + j*NX;
+			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
+			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
+			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
+			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + NX;
+		}
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, boundaryName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->section));
+	data->lastElementNumber = lastElementNumber;
+	free(quadrangleConnectivity);
+
+	return;
 }
 
 void generateElementsConnectivity2D(cgns_unstructured_file *data)

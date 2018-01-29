@@ -125,6 +125,135 @@ relationships:
 /* write CGNS_ENUMV(HEXA_8) element connectivity (user can give any name) */
     cg_section_write(index_file,index_base,index_zone,"Elem",CGNS_ENUMV(HEXA_8),nelem_start,
                      nelem_end,nbdyelem,ielem[0],&index_section);
+
+/* ---------------------------------------------------------- */
+/*
+do boundary (QUAD) elements (this part is optional,
+but you must do it if you eventually want to define BCs
+at element faces rather than at nodes):
+maintain SIDS-standard ordering
+*/
+/* INFLOW: */
+    ielem_no=0;
+/* index no of first element */
+    nelem_start=nelem_end+1;
+    i=1;
+    for (k=1; k < nk; k++)
+    {
+      for (j=1; j < nj; j++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode;
+        jelem[ielem_no][1]=ifirstnode+ni*nj;
+        jelem[ielem_no][2]=ifirstnode+ni*nj+ni;
+        jelem[ielem_no][3]=ifirstnode+ni;
+        ielem_no=ielem_no+1;
+      }
+    }
+/* index no of last element */
+    nelem_end=nelem_start+ielem_no-1;
+    if (ielem_no > maxelemj)
+    {
+      printf("\nError, must increase maxelemj to at least %d\n",ielem_no);
+      return 1;
+    }
+/* write QUAD element connectivity for inflow face (user can give any name) */
+    cg_section_write(index_file,index_base,index_zone,"InflowElem",CGNS_ENUMV(QUAD_4),nelem_start,
+                     nelem_end,nbdyelem,jelem[0],&index_section);
+/* OUTFLOW: */
+    ielem_no=0;
+/* index no of first element */
+    nelem_start=nelem_end+1;
+    i=ni-1;
+    for (k=1; k < nk; k++)
+    {
+      for (j=1; j < nj; j++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode+1;
+        jelem[ielem_no][1]=ifirstnode+1+ni;
+        jelem[ielem_no][2]=ifirstnode+ni*nj+1+ni;
+        jelem[ielem_no][3]=ifirstnode+ni*nj+1;
+        ielem_no=ielem_no+1;
+      }
+    }
+/* index no of last element */
+    nelem_end=nelem_start+ielem_no-1;
+    if (ielem_no > maxelemj)
+    {
+      printf("\nError, must increase maxelemj to at least %d\n",ielem_no);
+      return 1;
+    }
+/* write QUAD element connectivity for outflow face (user can give any name) */
+    cg_section_write(index_file,index_base,index_zone,"OutflowElem",CGNS_ENUMV(QUAD_4),nelem_start,
+                     nelem_end,nbdyelem,jelem[0],&index_section);
+/* SIDEWALLS: */
+    ielem_no=0;
+/* index no of first element */
+    nelem_start=nelem_end+1;
+    j=1;
+    for (k=1; k < nk; k++)
+    {
+      for (i=1; i < ni; i++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode;
+        jelem[ielem_no][1]=ifirstnode+ni*nj;
+        jelem[ielem_no][2]=ifirstnode+ni*nj+1;
+        jelem[ielem_no][3]=ifirstnode+1;
+        ielem_no=ielem_no+1;
+      }
+    }
+    j=nj-1;
+    for (k=1; k < nk; k++)
+    {
+      for (i=1; i < ni; i++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode+1+ni;
+        jelem[ielem_no][1]=ifirstnode+ni;
+        jelem[ielem_no][2]=ifirstnode+ni*nj+ni;
+        jelem[ielem_no][3]=ifirstnode+ni*nj+1+ni;
+        ielem_no=ielem_no+1;
+      }
+    }
+    k=1;
+    for (j=1; j < nj; j++)
+    {
+      for (i=1; i < ni; i++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode;
+        jelem[ielem_no][1]=ifirstnode+1;
+        jelem[ielem_no][2]=ifirstnode+1+ni;
+        jelem[ielem_no][3]=ifirstnode+ni;
+        ielem_no=ielem_no+1;
+      }
+    }
+    k=nk-1;
+    for (j=1; j < nj; j++)
+    {
+      for (i=1; i < ni; i++)
+      {
+        ifirstnode=i+(j-1)*ni+(k-1)*ni*nj;
+        jelem[ielem_no][0]=ifirstnode+ni*nj;
+        jelem[ielem_no][1]=ifirstnode+ni*nj+ni;
+        jelem[ielem_no][2]=ifirstnode+ni*nj+1+ni;
+        jelem[ielem_no][3]=ifirstnode+ni*nj+1;
+        ielem_no=ielem_no+1;
+      }
+    }
+/* index no of last element */
+    nelem_end=nelem_start+ielem_no-1;
+    if (ielem_no > maxelemj)
+    {
+      printf("\nError, must increase maxelemj to at least %d\n",ielem_no);
+      return 1;
+    }
+/* write QUAD element connectivity for sidewall face (user can give any name) */
+    cg_section_write(index_file,index_base,index_zone,"SidewallElem",CGNS_ENUMV(QUAD_4),nelem_start,
+                     nelem_end,nbdyelem,jelem[0],&index_section);
+
 /* ---------------------------------------------------------- */
 /* close CGNS file */
     cg_close(index_file);

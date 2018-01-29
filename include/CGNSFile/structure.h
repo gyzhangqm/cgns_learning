@@ -34,6 +34,8 @@ typedef struct cgns_unstructured_file
 
 	int coorX, coorY, coorZ;
 	double *x, *y, *z;
+
+	int lastElementNumber;
 } cgns_unstructured_file;
 
 #endif
