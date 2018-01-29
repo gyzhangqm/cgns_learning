@@ -39,10 +39,18 @@ typedef struct cgns_unstructured_file
 	char gridConnectivitySectionName[MAX_STRING_LEN];
 	int gridConnectivitySection;
 
-	char southBoundarySectionName[MAX_STRING_LEN];
+	char topBoundarySectionName[MAX_STRING_LEN];
+	char bottomBoundarySectionName[MAX_STRING_LEN];
 	char northBoundarySectionName[MAX_STRING_LEN];
-	int southBoundarySection;
+	char southBoundarySectionName[MAX_STRING_LEN];
+	char eastBoundarySectionName[MAX_STRING_LEN];
+	char westBoundarySectionName[MAX_STRING_LEN];
+	int topBoundarySection;
+	int bottomBoundarySection;
 	int northBoundarySection;
+	int southBoundarySection;
+	int eastBoundarySection;
+	int westBoundarySection;
 } cgns_unstructured_file;
 
 #endif

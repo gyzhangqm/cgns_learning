@@ -281,8 +281,8 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	const int NZ = data->nz;
 	cgsize_t * quadrangleConnectivity;
 
-	/* south */
-	strcpy(data->southBoundarySectionName, "south boundary");
+	/* bottom */
+	strcpy(data->southBoundarySectionName, "bottom boundary");
 	numberOfElements = (NX-1)*(NY-1);
 	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
 	firstElementNumber = data->lastElementNumber + 1;
@@ -299,11 +299,11 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 		}
 	}
 	lastElementNumber = firstElementNumber + numberOfElements - 1;
-	cg_section_write(data->file, data->base, data->zone, data->southBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->southBoundarySection));
+	cg_section_write(data->file, data->base, data->zone, data->bottomBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->bottomBoundarySection));
 	data->lastElementNumber = lastElementNumber;
 
-	/* north */
-	strcpy(data->northBoundarySectionName, "north boundary");
+	/* top */
+	strcpy(data->topBoundarySectionName, "top boundary");
 	numberOfElements = (NX-1)*(NY-1);
 	quadrangleConnectivity = (cgsize_t *) realloc(quadrangleConnectivity, 4*numberOfElements*sizeof(cgsize_t));
 	firstElementNumber = data->lastElementNumber + 1;
@@ -321,7 +321,7 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 		}
 	}
 	lastElementNumber = firstElementNumber + numberOfElements - 1;
-	cg_section_write(data->file, data->base, data->zone, data->northBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->northBoundarySection));
+	cg_section_write(data->file, data->base, data->zone, data->topBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->topBoundarySection));
 	data->lastElementNumber = lastElementNumber;
 	free(quadrangleConnectivity);
 
