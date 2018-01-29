@@ -282,16 +282,17 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	cgsize_t * quadrangleConnectivity;
 
 	/* bottom */
-	strcpy(data->southBoundarySectionName, "bottom boundary");
+	strcpy(data->bottomBoundarySectionName, "bottom boundary");
 	numberOfElements = (NX-1)*(NY-1);
 	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
 	firstElementNumber = data->lastElementNumber + 1;
+	k = 0;
 	for(i=0 ; i<(NX-1) ; ++i)
 	{
 		for(j=0 ; j<(NY-1) ; ++j)
 		{
 			elementNumber = i + (NX-1)*j;
-			firstVerticeIndex = i + j*NX;
+			firstVerticeIndex = i + j*NX + k*NX*NY;
 			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
 			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
 			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
@@ -323,8 +324,52 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	lastElementNumber = firstElementNumber + numberOfElements - 1;
 	cg_section_write(data->file, data->base, data->zone, data->topBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->topBoundarySection));
 	data->lastElementNumber = lastElementNumber;
-	free(quadrangleConnectivity);
 
+	/* north */
+	strcpy(data->northBoundarySectionName, "north boundary");
+	numberOfElements = (NX-1)*(NZ-1);
+	quadrangleConnectivity = (cgsize_t *) realloc(quadrangleConnectivity, 4*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	j = NY - 1;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(k=0 ; k<(NZ-1) ; ++k)
+		{
+			elementNumber = i + (NX-1)*k;
+			firstVerticeIndex = i + j*NX + k*NX*NY;
+			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
+			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + NX*NY;
+			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX*NY + 1;
+			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + 1;
+		}
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->northBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->northBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* south */
+	strcpy(data->southBoundarySectionName, "south boundary");
+	numberOfElements = (NX-1)*(NZ-1);
+	quadrangleConnectivity = (cgsize_t *) realloc(quadrangleConnectivity, 4*numberOfElements*sizeof(cgsize_t));
+	firstElementNumber = data->lastElementNumber + 1;
+	j = 0;
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(k=0 ; k<(NZ-1) ; ++k)
+		{
+			elementNumber = i + (NX-1)*k;
+			firstVerticeIndex = i + j*NX + k*NX*NY;
+			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
+			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + NX*NY;
+			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX*NY + 1;
+			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + 1;
+		}
+	}
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, data->southBoundarySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->southBoundarySection));
+	data->lastElementNumber = lastElementNumber;
+
+	free(quadrangleConnectivity);
 	return;
 }
 
