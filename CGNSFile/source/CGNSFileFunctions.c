@@ -487,6 +487,51 @@ void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data)
 	return ;
 }
 
+int generate2DTriangleElementsConnectivity(cgns_unstructured_file *data, int verticalDirectionVertexIndexStart, int verticalDirectionVertexIndexEnd, cgsize_t firstElementIndex)
+{
+	const int numberOfVerticesPerTriangle = 3;
+
+	const int NX = data->nx;
+	const int NY = data->ny;
+
+	int triangleElementHorizontalPosition, triangleElementVerticalPosition;
+	char sectionName[400];
+	int vertexIndexStart = NX * verticalDirectionVertexIndexStart;
+	int horizontalDirectionVertexIndexStart = 0, horizontalDirectionVertexIndexEnd = NX - 1;
+	int numberOfTriangleElements, numberOfElementsInHorizontalDirection, numberOfElementsInVerticalDirection;
+	int quadrangleElementNumber, firstVertexIndex, firstTriangleNumber, secondTriangleNumber;
+	cgsize_t *triangleConnectivity;
+	cgsize_t lastElementIndex;
+
+	numberOfElementsInHorizontalDirection = horizontalDirectionVertexIndexEnd - horizontalDirectionVertexIndexStart;
+	numberOfElementsInVerticalDirection = verticalDirectionVertexIndexEnd - verticalDirectionVertexIndexStart;
+	numberOfTriangleElements = 2 * numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection;
+	triangleConnectivity = (cgsize_t *) malloc(numberOfVerticesPerTriangle*numberOfTriangleElements*sizeof(cgsize_t));
+	for(triangleElementHorizontalPosition=0 ; triangleElementHorizontalPosition<numberOfElementsInHorizontalDirection ; ++triangleElementHorizontalPosition)
+	{
+		for(triangleElementVerticalPosition=0 ; triangleElementVerticalPosition<numberOfElementsInVerticalDirection ; ++triangleElementVerticalPosition)
+		{
+			quadrangleElementNumber = triangleElementHorizontalPosition + (NX-1)*triangleElementVerticalPosition;
+			firstTriangleNumber = 3*2*quadrangleElementNumber;
+			secondTriangleNumber = 3*2*quadrangleElementNumber + 3;
+			firstVertexIndex = triangleElementHorizontalPosition + triangleElementVerticalPosition*NX + vertexIndexStart;
+			triangleConnectivity[firstTriangleNumber+0] = 1 + firstVertexIndex;
+			triangleConnectivity[firstTriangleNumber+1] = 1 + firstVertexIndex + 1;
+			triangleConnectivity[firstTriangleNumber+2] = 1 + firstVertexIndex + NX + 1;
+			triangleConnectivity[secondTriangleNumber+0] = 1 + firstVertexIndex;
+			triangleConnectivity[secondTriangleNumber+1] = 1 + firstVertexIndex + NX + 1;
+			triangleConnectivity[secondTriangleNumber+2] = 1 + firstVertexIndex + NX;
+		}
+	}
+	lastElementIndex = firstElementIndex + numberOfTriangleElements - 1;
+	strcpy(sectionName, data->gridConnectivitySectionName);
+	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," triangle"), CGNS_ENUMV(TRI_3), firstElementIndex, lastElementIndex, 0, triangleConnectivity, &(data->gridConnectivitySection));
+	data->lastElementNumber = lastElementIndex;
+
+	free(triangleConnectivity);
+	return lastElementIndex;
+}
+
 void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data)
 {
 	char sectionName[400];
@@ -532,34 +577,7 @@ void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data)
 	data->lastElementNumber = lastElementNumber;
 
 	/* Triangle */
-	strcpy(sectionName, data->gridConnectivitySectionName);
-	numberOfElementsInVerticalDirection = triangleEnd - triangleStart;
-	numberOfElementsInHorizontalDirection = NX - 1;
-	numberOfElements = 2 * (numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection);
-	triangleConnectivity = (cgsize_t *) malloc(3*numberOfElements*sizeof(cgsize_t));
-	for(i=0 ; i<(NX-1) ; ++i)
-	{
-		for(j=triangleStart ; j<triangleEnd ; ++j)
-		{
-			quadrangleElementNumber = i + (NX-1)*j - numberOfQuadrangles;
-			firstTriangleNumber = 3*2*quadrangleElementNumber;
-			secondTriangleNumber = 3*2*quadrangleElementNumber + 3;
-			firstVerticeIndex = i + j*NX;
-			triangleConnectivity[firstTriangleNumber+0] = 1 + firstVerticeIndex;
-			triangleConnectivity[firstTriangleNumber+1] = 1 + firstVerticeIndex + 1;
-			triangleConnectivity[firstTriangleNumber+2] = 1 + firstVerticeIndex + NX + 1;
-			triangleConnectivity[secondTriangleNumber+0] = 1 + firstVerticeIndex;
-			triangleConnectivity[secondTriangleNumber+1] = 1 + firstVerticeIndex + NX + 1;
-			triangleConnectivity[secondTriangleNumber+2] = 1 + firstVerticeIndex + NX;
-		}
-	}
-	firstElementNumber = lastElementNumber + 1;
-	lastElementNumber = firstElementNumber + numberOfElements - 1;
-	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," triangle"), CGNS_ENUMV(TRI_3), firstElementNumber, lastElementNumber, 0, triangleConnectivity, &(data->gridConnectivitySection));
-	data->lastElementNumber = lastElementNumber;
-
-	free(quadrangleConnectivity);
-	free(triangleConnectivity);
+	lastElementNumber = generate2DTriangleElementsConnectivity(data, triangleStart, triangleEnd, lastElementNumber+1);
 	return ;
 }
 

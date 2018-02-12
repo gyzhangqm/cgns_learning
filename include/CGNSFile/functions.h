@@ -20,6 +20,7 @@ void generateCoordinates2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data);
 void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data);
+int generate2DTriangleElementsConnectivity(cgns_unstructured_file *data, int verticalDirectionVertexIndexStart, int verticalDirectionVertexIndexEnd, cgsize_t firstElementIndex);
 void generateBoundaryLines2D(cgns_unstructured_file *data);
 
 void generateSimulationType_TimeAccurate(cgns_unstructured_file *data);
