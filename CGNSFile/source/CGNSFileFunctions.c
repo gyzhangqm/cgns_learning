@@ -416,36 +416,49 @@ void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data)
 	return;
 }
 
-void generateElementsConnectivity2D(cgns_unstructured_file *data)
+int generate2DQuadrangleElementsConnectivity(cgns_unstructured_file *data, int verticalDirectionVertexIndexStart, int verticalDirectionVertexIndexEnd, cgsize_t firstElementIndex)
 {
-	int i, j;
-	int numberOfElements, elementNumber, firstVerticeIndex;
-	cgsize_t *quadrangleConnectivity;
-	cgsize_t firstElementNumber = 1;
-	cgsize_t lastElementNumber;
-
+	const int numberOfVerticesPerQuadrangle = 4;
 	const int NX = data->nx;
 	const int NY = data->ny;
+	int quadrangleElementHorizontalPosition, quadrangleElementVerticalPosition;
+	char sectionName[400];
+	int vertexIndexStart = NX * verticalDirectionVertexIndexStart;
+	int horizontalDirectionVertexIndexStart = 0, horizontalDirectionVertexIndexEnd = NX - 1;
+	int numberOfQuadrangleElements, numberOfElementsInHorizontalDirection, numberOfElementsInVerticalDirection;
+	int quadrangleElementIndex, quadrangleDataPositionInArray, firstVertexIndex;
+	cgsize_t *quadrangleConnectivity;
+	cgsize_t lastElementIndex;
 
-	numberOfElements = (NX-1)*(NY-1);
-	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
-	for(i=0 ; i<(NX-1) ; ++i)
+	numberOfElementsInHorizontalDirection = horizontalDirectionVertexIndexEnd - horizontalDirectionVertexIndexStart;
+	numberOfElementsInVerticalDirection = verticalDirectionVertexIndexEnd - verticalDirectionVertexIndexStart;
+	numberOfQuadrangleElements = numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection;
+	quadrangleConnectivity = (cgsize_t *) malloc(numberOfVerticesPerQuadrangle*numberOfQuadrangleElements*sizeof(cgsize_t));
+	for(quadrangleElementHorizontalPosition=0 ; quadrangleElementHorizontalPosition<numberOfElementsInHorizontalDirection ; ++quadrangleElementHorizontalPosition)
 	{
-		for(j=0 ; j<(NY-1) ; ++j)
+		for(quadrangleElementVerticalPosition=0 ; quadrangleElementVerticalPosition<numberOfElementsInVerticalDirection ; ++quadrangleElementVerticalPosition)
 		{
-			elementNumber = i + (NX-1)*j;
-			firstVerticeIndex = i + j*NX;
-			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
-			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
-			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
-			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + NX;
+			quadrangleElementIndex = quadrangleElementHorizontalPosition + (NX-1)*quadrangleElementVerticalPosition;
+			quadrangleDataPositionInArray = 4 * quadrangleElementIndex;
+			firstVertexIndex = quadrangleElementHorizontalPosition + quadrangleElementVerticalPosition*NX + vertexIndexStart;
+			quadrangleConnectivity[quadrangleDataPositionInArray+0] = 1 + firstVertexIndex;
+			quadrangleConnectivity[quadrangleDataPositionInArray+1] = 1 + firstVertexIndex + 1;
+			quadrangleConnectivity[quadrangleDataPositionInArray+2] = 1 + firstVertexIndex + NX + 1;
+			quadrangleConnectivity[quadrangleDataPositionInArray+3] = 1 + firstVertexIndex + NX;
 		}
 	}
-	lastElementNumber = numberOfElements;
-	cg_section_write(data->file, data->base, data->zone, data->gridConnectivitySectionName, CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
-	data->lastElementNumber = lastElementNumber;
+	lastElementIndex = firstElementIndex + numberOfQuadrangleElements - 1;
+	strcpy(sectionName, data->gridConnectivitySectionName);
+	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," quadrangle"), CGNS_ENUMV(QUAD_4), firstElementIndex, lastElementIndex, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
+	data->lastElementNumber = lastElementIndex;
 
 	free(quadrangleConnectivity);
+	return lastElementIndex;
+}
+
+void generateElementsConnectivity2D(cgns_unstructured_file *data)
+{
+	generate2DQuadrangleElementsConnectivity(data, 0, (data->ny - 1), 1);
 	return ;
 }
 
@@ -502,50 +515,14 @@ void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data)
 
 void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data)
 {
-	char sectionName[400];
-	int i, j;
-	int numberOfElements, firstVerticeIndex, elementNumber;
-	int quadrangleElementNumber, firstTriangleNumber, secondTriangleNumber;
-	cgsize_t *triangleConnectivity, *quadrangleConnectivity;
-	cgsize_t firstElementNumber;
-	cgsize_t lastElementNumber;
-
-	const int NX = data->nx;
-	const int NY = data->ny;
-
-	int triangleStart = NY/2; /* 'NY/2': integer division. */
-	int triangleEnd = NY - 1;
+	cgsize_t lastElementIndex;
+	int triangleStart = data->ny/2; /* 'NY/2': integer division. */
+	int triangleEnd = data->ny - 1;
 	int quadrangleStart = 0;
 	int quadrangleEnd = triangleStart;
-	int numberOfQuadrangles;
-	int numberOfElementsInHorizontalDirection, numberOfElementsInVerticalDirection;
 
-	/* Quadrangle */
-	strcpy(sectionName, data->gridConnectivitySectionName);
-	numberOfElementsInVerticalDirection = quadrangleEnd - quadrangleStart;
-	numberOfElementsInHorizontalDirection = NX - 1;
-	numberOfElements = numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection;
-	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
-	for(i=0 ; i<(NX-1) ; ++i)
-	{
-		for(j=quadrangleStart ; j<quadrangleEnd ; ++j)
-		{
-			elementNumber = i + (NX-1)*j;
-			firstVerticeIndex = i + j*NX;
-			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
-			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
-			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
-			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + NX;
-		}
-	}
-	firstElementNumber = 1;
-	lastElementNumber = numberOfElements;
-	numberOfQuadrangles = numberOfElements;
-	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," quadrangle"), CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
-	data->lastElementNumber = lastElementNumber;
-
-	/* Triangle */
-	lastElementNumber = generate2DTriangleElementsConnectivity(data, triangleStart, triangleEnd, lastElementNumber+1);
+	lastElementIndex = generate2DQuadrangleElementsConnectivity(data, quadrangleStart, quadrangleEnd, 1);
+	lastElementIndex = generate2DTriangleElementsConnectivity(data, triangleStart, triangleEnd, lastElementIndex+1);
 	return ;
 }
 
