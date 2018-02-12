@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 	strcpy(data.fileName, "/home/guesser/cgns_examples/output/UnstructuredGrid2D_triangle.cgns");
 	strcpy(data.baseName, "Simple structured grid");
 	strcpy(data.zoneName, "Grid");
-	strcpy(data.gridConnectivitySectionName, "quadrangle conectivity");
+	strcpy(data.gridConnectivitySectionName, "triangle conectivity");
 
 	data.cellDimension = CELL_DIMENSION;
 	data.physicalDimension = PHYSICAL_DIMENSION;
