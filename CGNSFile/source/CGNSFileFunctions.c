@@ -449,44 +449,6 @@ void generateElementsConnectivity2D(cgns_unstructured_file *data)
 	return ;
 }
 
-void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data)
-{
-	int i, j;
-	int numberOfElements, firstVerticeIndex;
-	int quadrangleElementNumber, firstTriangleNumber, secondTriangleNumber;
-	cgsize_t *triangleConnectivity;
-	cgsize_t firstElementNumber = 1;
-	cgsize_t lastElementNumber;
-
-	const int NX = data->nx;
-	const int NY = data->ny;
-
-	numberOfElements = 2*(NX-1)*(NY-1);
-	triangleConnectivity = (cgsize_t *) malloc(3*numberOfElements*sizeof(cgsize_t));
-	for(i=0 ; i<(NX-1) ; ++i)
-	{
-		for(j=0 ; j<(NY-1) ; ++j)
-		{
-			quadrangleElementNumber = i + (NX-1)*j;
-			firstTriangleNumber = 3*2*quadrangleElementNumber;
-			secondTriangleNumber = 3*2*quadrangleElementNumber + 3;
-			firstVerticeIndex = i + j*NX;
-			triangleConnectivity[firstTriangleNumber+0] = 1 + firstVerticeIndex;
-			triangleConnectivity[firstTriangleNumber+1] = 1 + firstVerticeIndex + 1;
-			triangleConnectivity[firstTriangleNumber+2] = 1 + firstVerticeIndex + NX + 1;
-			triangleConnectivity[secondTriangleNumber+0] = 1 + firstVerticeIndex;
-			triangleConnectivity[secondTriangleNumber+1] = 1 + firstVerticeIndex + NX + 1;
-			triangleConnectivity[secondTriangleNumber+2] = 1 + firstVerticeIndex + NX;
-		}
-	}
-	lastElementNumber = numberOfElements;
-	cg_section_write(data->file, data->base, data->zone, data->gridConnectivitySectionName, CGNS_ENUMV(TRI_3), firstElementNumber, lastElementNumber, 0, triangleConnectivity, &(data->gridConnectivitySection));
-	data->lastElementNumber = lastElementNumber;
-
-	free(triangleConnectivity);
-	return ;
-}
-
 int generate2DTriangleElementsConnectivity(cgns_unstructured_file *data, int verticalDirectionVertexIndexStart, int verticalDirectionVertexIndexEnd, cgsize_t firstElementIndex)
 {
 	const int numberOfVerticesPerTriangle = 3;
@@ -530,6 +492,12 @@ int generate2DTriangleElementsConnectivity(cgns_unstructured_file *data, int ver
 
 	free(triangleConnectivity);
 	return lastElementIndex;
+}
+
+void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data)
+{
+	generate2DTriangleElementsConnectivity(data, 0, data->ny-1, 1);
+	return ;
 }
 
 void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data)
