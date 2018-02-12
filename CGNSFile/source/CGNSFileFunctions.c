@@ -487,6 +487,82 @@ void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data)
 	return ;
 }
 
+void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data)
+{
+	char sectionName[400];
+	int i, j;
+	int numberOfElements, firstVerticeIndex, elementNumber;
+	int quadrangleElementNumber, firstTriangleNumber, secondTriangleNumber;
+	cgsize_t *triangleConnectivity, *quadrangleConnectivity;
+	cgsize_t firstElementNumber;
+	cgsize_t lastElementNumber;
+
+	const int NX = data->nx;
+	const int NY = data->ny;
+
+	int triangleStart = NY/2; /* 'NY/2': integer division. */
+	int triangleEnd = NY - 1;
+	int quadrangleStart = 0;
+	int quadrangleEnd = triangleStart;
+	int numberOfQuadrangles;
+	int numberOfElementsInHorizontalDirection, numberOfElementsInVerticalDirection;
+
+	/* Quadrangle */
+	strcpy(sectionName, data->gridConnectivitySectionName);
+	numberOfElementsInVerticalDirection = quadrangleEnd - quadrangleStart;
+	numberOfElementsInHorizontalDirection = NX - 1;
+	numberOfElements = numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection;
+	quadrangleConnectivity = (cgsize_t *) malloc(4*numberOfElements*sizeof(cgsize_t));
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(j=quadrangleStart ; j<quadrangleEnd ; ++j)
+		{
+			elementNumber = i + (NX-1)*j;
+			firstVerticeIndex = i + j*NX;
+			quadrangleConnectivity[4*elementNumber+0] = 1 + firstVerticeIndex;
+			quadrangleConnectivity[4*elementNumber+1] = 1 + firstVerticeIndex + 1;
+			quadrangleConnectivity[4*elementNumber+2] = 1 + firstVerticeIndex + NX + 1;
+			quadrangleConnectivity[4*elementNumber+3] = 1 + firstVerticeIndex + NX;
+		}
+	}
+	firstElementNumber = 1;
+	lastElementNumber = numberOfElements;
+	numberOfQuadrangles = numberOfElements;
+	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," quadrangle"), CGNS_ENUMV(QUAD_4), firstElementNumber, lastElementNumber, 0, quadrangleConnectivity, &(data->gridConnectivitySection));
+	data->lastElementNumber = lastElementNumber;
+
+	/* Triangle */
+	strcpy(sectionName, data->gridConnectivitySectionName);
+	numberOfElementsInVerticalDirection = triangleEnd - triangleStart;
+	numberOfElementsInHorizontalDirection = NX - 1;
+	numberOfElements = 2 * (numberOfElementsInHorizontalDirection * numberOfElementsInVerticalDirection);
+	triangleConnectivity = (cgsize_t *) malloc(3*numberOfElements*sizeof(cgsize_t));
+	for(i=0 ; i<(NX-1) ; ++i)
+	{
+		for(j=triangleStart ; j<triangleEnd ; ++j)
+		{
+			quadrangleElementNumber = i + (NX-1)*j - numberOfQuadrangles;
+			firstTriangleNumber = 3*2*quadrangleElementNumber;
+			secondTriangleNumber = 3*2*quadrangleElementNumber + 3;
+			firstVerticeIndex = i + j*NX;
+			triangleConnectivity[firstTriangleNumber+0] = 1 + firstVerticeIndex;
+			triangleConnectivity[firstTriangleNumber+1] = 1 + firstVerticeIndex + 1;
+			triangleConnectivity[firstTriangleNumber+2] = 1 + firstVerticeIndex + NX + 1;
+			triangleConnectivity[secondTriangleNumber+0] = 1 + firstVerticeIndex;
+			triangleConnectivity[secondTriangleNumber+1] = 1 + firstVerticeIndex + NX + 1;
+			triangleConnectivity[secondTriangleNumber+2] = 1 + firstVerticeIndex + NX;
+		}
+	}
+	firstElementNumber = lastElementNumber + 1;
+	lastElementNumber = firstElementNumber + numberOfElements - 1;
+	cg_section_write(data->file, data->base, data->zone, strcat(sectionName," triangle"), CGNS_ENUMV(TRI_3), firstElementNumber, lastElementNumber, 0, triangleConnectivity, &(data->gridConnectivitySection));
+	data->lastElementNumber = lastElementNumber;
+
+	free(quadrangleConnectivity);
+	free(triangleConnectivity);
+	return ;
+}
+
 void generateBoundaryLines2D(cgns_unstructured_file *data)
 {
 	int i, j, err;

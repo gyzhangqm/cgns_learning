@@ -19,6 +19,7 @@ void generateZone2D(cgns_unstructured_file *data);
 void generateCoordinates2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data);
+void generateElementsConnectivity2D_mixed(cgns_unstructured_file *data);
 void generateBoundaryLines2D(cgns_unstructured_file *data);
 
 void generateSimulationType_TimeAccurate(cgns_unstructured_file *data);
