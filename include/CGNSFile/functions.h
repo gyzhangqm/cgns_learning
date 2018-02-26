@@ -16,6 +16,8 @@ void generateElementsConnectivity3D(cgns_unstructured_file *data);
 void generateBoundaryQuadrangleElements3D(cgns_unstructured_file *data);
 
 void generateZone2D(cgns_unstructured_file *data);
+void generateZone2D_triangle(cgns_unstructured_file *data);
+void generateZone2D_mixed(cgns_unstructured_file *data);
 void generateCoordinates2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D(cgns_unstructured_file *data);
 void generateElementsConnectivity2D_triangle(cgns_unstructured_file *data);

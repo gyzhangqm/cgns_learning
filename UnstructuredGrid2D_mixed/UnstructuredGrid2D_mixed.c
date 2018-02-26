@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
 	generateCGNSFile(&data);
 	generateBase(&data);
-	generateZone2D(&data);
+	generateZone2D_mixed(&data);
 	generateCoordinates2D(&data);
 	generateElementsConnectivity2D_mixed(&data);
 	generateBoundaryLines2D(&data);

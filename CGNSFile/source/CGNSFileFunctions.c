@@ -148,6 +148,50 @@ void generateZone2D(cgns_unstructured_file *data)
 	return;
 }
 
+void generateZone2D_triangle(cgns_unstructured_file *data)
+{
+	int err;
+	cgsize_t size[3];
+	const int NX = data->nx;
+	const int NY = data->ny;
+
+	/* Define zone size */
+	size[0] = NX*NY;
+	size[1] = 2*(NX-1)*(NY-1);
+	size[2] = 0;
+
+	/* Open zone */
+	err = cg_zone_write(data->file, data->base, data->zoneName, size, Unstructured, &(data->zone)); CHKERRQ(err);
+
+	return;
+}
+
+void generateZone2D_mixed(cgns_unstructured_file *data)
+{
+	int err;
+	cgsize_t size[3];
+	const int NX = data->nx;
+	const int NY = data->ny;
+	int triangleStart = NY/2; /* 'NY/2': integer division. */
+	int triangleEnd = NY - 1;
+	int quadrangleStart = 0;
+	int quadrangleEnd = triangleStart;
+	int numberOfQuadrangles, numberOfTriangles;
+
+	numberOfTriangles = 2 * (NX-1) * (triangleEnd-triangleStart);
+	numberOfQuadrangles = (NX-1) * (quadrangleEnd-quadrangleStart);
+
+	/* Define zone size */
+	size[0] = NX*NY;
+	size[1] = numberOfQuadrangles + numberOfTriangles;
+	size[2] = 0;
+
+	/* Open zone */
+	err = cg_zone_write(data->file, data->base, data->zoneName, size, Unstructured, &(data->zone)); CHKERRQ(err);
+
+	return;
+}
+
 void generateCoordinates3D(cgns_unstructured_file *data)
 {
 	int err;
